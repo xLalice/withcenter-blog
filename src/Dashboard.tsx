@@ -1,12 +1,18 @@
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from './store/store';
 import { logout } from './store/slices/authSlice';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchBlogs, setPage } from './store/slices/blogSlice';
 import supabase from './utils/supabase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
+
+
     const user = useSelector((state: RootState) => state.auth.user);
     const { blogs, loading, page, totalPages } = useSelector((state: RootState) => state.blogs)
     const dispatch = useDispatch<AppDispatch>();
@@ -22,6 +28,29 @@ export default function Dashboard() {
         navigate('/login')
     }
 
+    const handleCreatePost = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsCreating(true);
+
+        if (!user) return;
+
+        const { error } = await supabase.from('blogs').insert({
+            title,
+            content,
+            user_id: user.id
+        });
+
+        if (error) {
+            alert(error.message);
+        } else {
+            dispatch(fetchBlogs(1));
+            setIsModalOpen(false);
+            setTitle('');
+            setContent('');
+        }
+        setIsCreating(false);
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-4xl mx-auto flex justify-between items-center mb-8">
@@ -30,9 +59,63 @@ export default function Dashboard() {
                     <p className="text-gray-500">Welcome, {user?.email}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-primary" onClick={() => alert("TODOO")}>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setIsModalOpen(true)}
+                    >
                         + New Post
                     </button>
+
+                    {isModalOpen && (
+                        <div className="modal modal-open">
+                            <div className="modal-box">
+
+                                <button
+                                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                    onClick={() => setIsModalOpen(false)}
+                                >
+                                    ✕
+                                </button>
+
+                                <h3 className="font-bold text-lg mb-4">Create a New Story</h3>
+
+                                <form onSubmit={handleCreatePost} className="flex flex-col gap-4">
+                                    <div className="form-control">
+                                        <label className="label"><span className="label-text">Title</span></label>
+                                        <input
+                                            required
+                                            type="text"
+                                            className="input input-bordered w-full"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-control">
+                                        <label className="label"><span className="label-text">Content</span></label>
+                                        <textarea
+                                            required
+                                            className="textarea textarea-bordered h-40 w-full"
+                                            value={content}
+                                            onChange={(e) => setContent(e.target.value)}
+                                        ></textarea>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary w-full mt-2"
+                                        disabled={isCreating}
+                                    >
+                                        {isCreating ? 'Publishing...' : 'Publish Post'}
+                                    </button>
+                                </form>
+                            </div>
+
+                            <form method="dialog" className="modal-backdrop">
+                                <button onClick={() => setIsModalOpen(false)}>close</button>
+                            </form>
+                        </div>
+                    )}
                     <button onClick={handleLogout} className="btn btn-outline btn-error">
                         Logout
                     </button>
@@ -54,7 +137,7 @@ export default function Dashboard() {
                                 <p className="text-gray-600 text-sm mb-2">
                                     {new Date(blog.created_at).toLocaleDateString()}
                                 </p>
-                                <p>{blog.content.substring(0, 150)}...</p> 
+                                <p>{blog.content.substring(0, 150)}...</p>
                             </div>
                         </div>
                     ))
