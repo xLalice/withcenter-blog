@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import supabase from './utils/supabase';
 import { Link, useNavigate } from 'react-router-dom';
+
+import supabase from './utils/supabase';
 
 export default function Registration() {
     const [error, setError] = useState<string | null>(null);

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import supabase from './utils/supabase';
-import { useDispatch } from 'react-redux';
-import { setSession } from './store/slices/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+
+import supabase from './utils/supabase';
+import { setSession } from './store/slices/authSlice';
+
 
 export default function Login() {
     const [error, setError] = useState<string | null>(null);
