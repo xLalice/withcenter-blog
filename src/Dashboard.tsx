@@ -5,12 +5,14 @@ import { useEffect, useState } from 'react';
 import { fetchBlogs, setPage, deleteBlog } from './store/slices/blogSlice';
 import supabase from './utils/supabase';
 import { useNavigate } from 'react-router-dom';
+import type { Blog } from './types';
 
 export default function Dashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isCreating, setIsCreating] = useState(false);
+    const [viewBlog, setViewBlog] = useState<Blog | null>(null);
 
 
     const user = useSelector((state: RootState) => state.auth.user);
@@ -60,7 +62,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex gap-2">
                     <button
-                        className="btn btn-primary"
+                        className="btn bg-sky-500 hover:bg-sky-600 text-white border-none"
                         onClick={() => setIsModalOpen(true)}
                     >
                         + New Post
@@ -116,6 +118,38 @@ export default function Dashboard() {
                             </form>
                         </div>
                     )}
+
+                    {viewBlog && (
+                        <div className="modal modal-open">
+                            <div className="modal-box w-11/12 max-w-4xl h-5/6 bg-white text-black overflow-y-auto">
+
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h2 className="text-3xl font-bold">{viewBlog.title}</h2>
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            Posted on {new Date(viewBlog.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                    <button
+                                        className="btn btn-circle btn-sm btn-ghost"
+                                        onClick={() => setViewBlog(null)}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="divider"></div>
+
+                                <div className="prose max-w-none">
+                                    <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-800">
+                                        {viewBlog.content}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="modal-backdrop" onClick={() => setViewBlog(null)}></div>
+                        </div>
+                    )}
                     <button onClick={handleLogout} className="btn btn-outline btn-error">
                         Logout
                     </button>
@@ -131,7 +165,7 @@ export default function Dashboard() {
                     </div>
                 ) : (
                     blogs.map((blog) => (
-                        <div key={blog.id} className="card bg-base-100 shadow-xl">
+                        <div key={blog.id} className="card bg-sky-500 shadow-xl">
                             <div className="card-body">
                                 <div className="flex justify-between items-start">
                                     <div>
@@ -154,7 +188,18 @@ export default function Dashboard() {
                                     )}
                                 </div>
 
-                                <p>{blog.content.substring(0, 150)}...</p>
+                                <p className="text-gray-700 mb-4">
+                                    {blog.content.substring(0, 150)}...
+                                </p>
+
+                                <div className="card-actions justify-end">
+                                    <button
+                                        className="btn bg-sky-900 hover:bg-sky-600 text-white border-none btn-sm"
+                                        onClick={() => setViewBlog(blog)}
+                                    >
+                                        Read Full Story
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))
