@@ -58,6 +58,25 @@ export const deleteBlog = createAsyncThunk(
     }
 );
 
+export const updateBlog = createAsyncThunk(
+    'blogs/updateBlog',
+    async ({ id, title, content }: { id: number, title: string, content: string }, { rejectWithValue }) => {
+        try {
+            const { data, error } = await supabase
+                .from('blogs')
+                .update({ title, content })
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data;
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 const blogSlice = createSlice({
     name: 'blogs',
     initialState,
@@ -86,6 +105,12 @@ const blogSlice = createSlice({
 
             .addCase(deleteBlog.fulfilled, (state, action) => {
                 state.blogs = state.blogs.filter((blog) => blog.id !== action.payload);
+            })
+            .addCase(updateBlog.fulfilled, (state, action) => {
+                const index = state.blogs.findIndex(blog => blog.id === action.payload.id);
+                if (index !== -1) {
+                    state.blogs[index] = action.payload;
+                }
             });
     },
 });
