@@ -210,17 +210,17 @@ export default function Dashboard() {
 
             <div className="max-w-4xl mx-auto mt-8 flex justify-center gap-2">
                 <button
-                    className="btn btn-sm"
+                    className="btn btn-sm bg-sky-500 border-none"
                     disabled={page === 1}
                     onClick={() => dispatch(setPage(page - 1))}
                 >
                     Previous
                 </button>
-                <span className="flex items-center px-4 font-bold">
+                <span className="flex items-center px-4 font-bold text-black">
                     Page {page} of {totalPages || 1}
                 </span>
                 <button
-                    className="btn btn-sm"
+                    className="btn btn-sm bg-sky-500 border-none"
                     disabled={page >= totalPages}
                     onClick={() => dispatch(setPage(page + 1))}
                 >
