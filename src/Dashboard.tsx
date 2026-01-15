@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from './store/store';
 import { logout } from './store/slices/authSlice';
 import { useEffect, useState } from 'react';
-import { fetchBlogs, setPage } from './store/slices/blogSlice';
+import { fetchBlogs, setPage, deleteBlog } from './store/slices/blogSlice';
 import supabase from './utils/supabase';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,7 +31,7 @@ export default function Dashboard() {
     const handleCreatePost = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsCreating(true);
-
+        console.log(user)
         if (!user) return;
 
         const { error } = await supabase.from('blogs').insert({
@@ -133,10 +133,28 @@ export default function Dashboard() {
                     blogs.map((blog) => (
                         <div key={blog.id} className="card bg-base-100 shadow-xl">
                             <div className="card-body">
-                                <h2 className="card-title">{blog.title}</h2>
-                                <p className="text-gray-600 text-sm mb-2">
-                                    {new Date(blog.created_at).toLocaleDateString()}
-                                </p>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h2 className="card-title">{blog.title}</h2>
+                                        <p className="text-gray-600 text-sm mb-2">
+                                            {new Date(blog.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+=
+                                    {user?.id === blog.user_id && (
+                                        <button
+                                            onClick={() => {
+                                                if (confirm('Are you sure you want to delete this?')) {
+                                                    dispatch(deleteBlog(blog.id));
+                                                }
+                                            }}
+                                            className="btn btn-error btn-xs"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
+
                                 <p>{blog.content.substring(0, 150)}...</p>
                             </div>
                         </div>
