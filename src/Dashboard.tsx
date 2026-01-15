@@ -140,7 +140,6 @@ export default function Dashboard() {
                                             {new Date(blog.created_at).toLocaleDateString()}
                                         </p>
                                     </div>
-=
                                     {user?.id === blog.user_id && (
                                         <button
                                             onClick={() => {
