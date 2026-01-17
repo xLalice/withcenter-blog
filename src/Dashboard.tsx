@@ -21,6 +21,7 @@ export default function Dashboard() {
     const [viewBlog, setViewBlog] = useState<Blog | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+    const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 
     useEffect(() => {
         dispatch(fetchBlogs(page));
@@ -34,11 +35,13 @@ export default function Dashboard() {
     };
 
     const openCreateModal = () => {
+        setSelectedBlog(null);
         setFormMode('create');
         setIsFormOpen(true);
     };
 
-    const openEditModal = () => {
+    const openEditModal = (blog: Blog) => {
+        setSelectedBlog(blog);
         setFormMode('edit');
         setIsFormOpen(true);
     };
@@ -92,7 +95,7 @@ export default function Dashboard() {
                                     {user?.id === blog.user_id && (
                                         <div className="flex gap-2">
                                             <button 
-                                                onClick={() => openEditModal()} 
+                                                onClick={() => openEditModal(blog)} 
                                                 className="btn btn-warning btn-xs text-white"
                                             >
                                                 Edit
@@ -146,7 +149,7 @@ export default function Dashboard() {
                 mode={formMode}
                 onClose={() => setIsFormOpen(false)}
                 user={user}
-                
+                blogToEdit={selectedBlog}
             />
 
             <ReadModal

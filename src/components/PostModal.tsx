@@ -1,8 +1,8 @@
 import type { User } from "@supabase/supabase-js";
 import type React from "react";
 import { useEffect, useState } from "react";
-import supabase, { uploadImage } from "../utils/supabase";
-import { fetchBlogs, updateBlog } from "../store/slices/blogSlice";
+import { uploadImage } from "../utils/supabase";
+import { createBlog, updateBlog } from "../store/slices/blogSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
 import type { FormData } from "../types";
@@ -12,18 +12,39 @@ interface PostModal {
     mode: 'create' | 'edit';
     onClose: () => void;
     user: User;
+    blogToEdit?: FormData | null;
 }
 
 export const PostModal = ({
     isOpen,
     mode,
     onClose,
-    user
+    user,
+    blogToEdit
 }: PostModal) => {
     const [formData, setFormData] = useState<FormData>({ id: 0, title: "", content: "", image_url: "" });
     const [file, setFile] = useState<File | null>(null);
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (mode === 'edit' && blogToEdit) {
+                setFormData({
+                    id: blogToEdit.id,
+                    title: blogToEdit.title,
+                    content: blogToEdit.content,
+                    image_url: blogToEdit.image_url
+                });
+                setBlobUrl(null);
+                setFile(null);
+            } else {
+                setFormData({ id: 0, title: "", content: "", image_url: "" });
+                setFile(null);
+                setBlobUrl(null);
+            }
+        }
+    }, [isOpen, mode, blogToEdit]);
 
     const dispatch = useDispatch<AppDispatch>();
 
@@ -45,45 +66,46 @@ export const PostModal = ({
         }
     };
 
-    const finalPreview = blobUrl || formData.image_url;
-
-    const handleFormSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
-
         setIsSubmitting(true);
 
-        let image_url;
-        if (file) image_url = await uploadImage(file);         
-    
-        if (mode === 'create') {
-            const { error } = await supabase.from('blogs').insert({
-                title: formData.title,
-                content: formData.content,
-                user_id: user.id,
-                image_url
-            });
+        try {
+            let finalImageUrl = formData.image_url;
 
-            if (error) alert(error.message);
-            else dispatch(fetchBlogs(1));
+            if (file) {
+                const uploadedUrl = await uploadImage(file);
+                if (uploadedUrl) finalImageUrl = uploadedUrl;
+            }
 
-        } else {
-            const result = await dispatch(updateBlog({
-                id: formData.id,
-                title: formData.title,
-                content: formData.content,
-                image_url
-            }));
+            if (mode === 'create') {
+                await dispatch(createBlog({
+                    title: formData.title,
+                    content: formData.content,
+                    image_url: finalImageUrl || "",
+                    user_id: user.id
+                })).unwrap();
 
-            if (!updateBlog.fulfilled.match(result)) alert("Failed to update.");
+            } else {
+                await dispatch(updateBlog({
+                    ...formData,
+                    image_url: finalImageUrl || ""
+                })).unwrap();
+            }
+
+            onClose();
+
+        } catch (error: any) {
+            alert("Error saving post: " + error.message);
+        } finally {
+            setIsSubmitting(false);
         }
-
-        setIsSubmitting(false);
-        onClose();
     };
 
-
     if (!isOpen) return null;
+
+    const displayImage = blobUrl || formData.image_url;
 
     return (
         <div className="modal modal-open">
@@ -100,7 +122,7 @@ export const PostModal = ({
                     {mode === 'create' ? 'Create a New Story' : 'Edit Story'}
                 </h3>
 
-                <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text font-semibold text-gray-700">Title</span>
@@ -138,10 +160,10 @@ export const PostModal = ({
                             onChange={handleFileChange}
                         />
 
-                        {finalPreview && (
+                        {displayImage && (
                             <div className="mt-4 relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
                                 <img
-                                    src={finalPreview}
+                                    src={displayImage}
                                     alt="Preview"
                                     className="w-full h-full object-cover"
                                 />

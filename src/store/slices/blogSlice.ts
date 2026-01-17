@@ -41,6 +41,20 @@ export const fetchBlogs = createAsyncThunk(
     }
 );
 
+export const createBlog = createAsyncThunk(
+    'blogs/createBlog',
+    async (newBlog: { title: string; content: string; image_url: string; user_id: string }, { rejectWithValue }) => {
+        const { data, error } = await supabase
+            .from('blogs')
+            .insert(newBlog)
+            .select()
+            .single();
+
+        if (error) return rejectWithValue(error.message);
+        return data;
+    }
+);
+
 export const deleteBlog = createAsyncThunk(
     'blogs/deleteBlog',
     async (id: number, { rejectWithValue }) => {
@@ -111,6 +125,9 @@ const blogSlice = createSlice({
                 if (index !== -1) {
                     state.blogs[index] = action.payload;
                 }
+            })
+            .addCase(createBlog.fulfilled, (state, action) => {
+                state.blogs.unshift(action.payload);
             });
     },
 });
