@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import supabase from '../../utils/supabase';
-import type { Blog } from '../../types';
+import type { Blog, FormData } from '../../types';
 
 interface BlogState {
     blogs: Blog[];
@@ -28,7 +28,7 @@ export const fetchBlogs = createAsyncThunk(
         try {
             const { data, count, error } = await supabase
                 .from('blogs')
-                .select('*', { count: 'exact' })
+                .select('*, comments (id, content, image_url, created_at, profiles (email))', { count: 'exact' })
                 .order('created_at', { ascending: false })
                 .range(from, to);
 
@@ -60,11 +60,11 @@ export const deleteBlog = createAsyncThunk(
 
 export const updateBlog = createAsyncThunk(
     'blogs/updateBlog',
-    async ({ id, title, content }: { id: number, title: string, content: string }, { rejectWithValue }) => {
+    async ({ id, title, content, image_url }: FormData, { rejectWithValue }) => {
         try {
             const { data, error } = await supabase
                 .from('blogs')
-                .update({ title, content })
+                .update({ title, content, image_url })
                 .eq('id', id)
                 .select()
                 .single();

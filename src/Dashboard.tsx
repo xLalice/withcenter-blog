@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import type { AppDispatch, RootState } from "./store/store";
-import { deleteBlog, fetchBlogs, setPage, updateBlog } from "./store/slices/blogSlice";
+import { deleteBlog, fetchBlogs, setPage } from "./store/slices/blogSlice";
 import supabase from "./utils/supabase";
 import { logout } from "./store/slices/authSlice";
 import type { Blog } from "./types";
@@ -21,9 +21,6 @@ export default function Dashboard() {
     const [viewBlog, setViewBlog] = useState<Blog | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    const [formData, setFormData] = useState({ id: 0, title: '', content: '' });
 
     useEffect(() => {
         dispatch(fetchBlogs(page));
@@ -38,13 +35,11 @@ export default function Dashboard() {
 
     const openCreateModal = () => {
         setFormMode('create');
-        setFormData({ id: 0, title: '', content: '' });
         setIsFormOpen(true);
     };
 
-    const openEditModal = (blog: Blog) => {
+    const openEditModal = () => {
         setFormMode('edit');
-        setFormData({ id: blog.id, title: blog.title, content: blog.content });
         setIsFormOpen(true);
     };
 
@@ -54,35 +49,7 @@ export default function Dashboard() {
         }
     };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
-        
-        setIsSubmitting(true);
-
-        if (formMode === 'create') {
-            const { error } = await supabase.from('blogs').insert({
-                title: formData.title,
-                content: formData.content,
-                user_id: user.id
-            });
-
-            if (error) alert(error.message);
-            else dispatch(fetchBlogs(1));
-
-        } else {
-            const result = await dispatch(updateBlog({
-                id: formData.id,
-                title: formData.title,
-                content: formData.content
-            }));
-            
-            if (!updateBlog.fulfilled.match(result)) alert("Failed to update.");
-        }
-
-        setIsSubmitting(false);
-        setIsFormOpen(false);
-    };
+    if (!user) return;
 
     return (
         <div className="min-h-screen bg-gray-100 p-8">
@@ -125,7 +92,7 @@ export default function Dashboard() {
                                     {user?.id === blog.user_id && (
                                         <div className="flex gap-2">
                                             <button 
-                                                onClick={() => openEditModal(blog)} 
+                                                onClick={() => openEditModal()} 
                                                 className="btn btn-warning btn-xs text-white"
                                             >
                                                 Edit
@@ -177,11 +144,9 @@ export default function Dashboard() {
             <PostModal
                 isOpen={isFormOpen}
                 mode={formMode}
-                formData={formData}
-                setFormData={setFormData}
                 onClose={() => setIsFormOpen(false)}
-                onSubmit={handleSave}
-                isSubmitting={isSubmitting}
+                user={user}
+                
             />
 
             <ReadModal

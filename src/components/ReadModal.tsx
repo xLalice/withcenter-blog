@@ -1,7 +1,11 @@
+import { useSelector } from "react-redux";
 import type { Blog } from "../types";
+import { CommentSection } from "./CommentSection";
+import type { RootState } from "../store/store";
 
 export const ReadModal = ({ blog, onClose }: { blog: Blog | null, onClose: () => void }) => {
-    if (!blog) return null;
+    const user = useSelector((state: RootState) => state.auth.user);
+    if (!blog || !user) return null;
     return (
         <div className="modal modal-open">
             <div className="modal-box w-11/12 max-w-4xl h-5/6 bg-white text-black overflow-y-auto">
@@ -17,7 +21,17 @@ export const ReadModal = ({ blog, onClose }: { blog: Blog | null, onClose: () =>
                 <div className="divider"></div>
                 <article className="prose max-w-none">
                     <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-800">{blog.content}</p>
+                    <img
+                        src={blog.image_url}
+                        alt="Blog Image"
+                        className="w-full h-full object-cover"
+                    />
                 </article>
+                <CommentSection
+                    blogId={blog.id}
+                    initialComments={blog.comments}
+                    currentUser={user}
+                />
             </div>
             <div className="modal-backdrop" onClick={onClose}></div>
         </div>
