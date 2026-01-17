@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import supabase, { uploadImage } from '../utils/supabase';
 import type { Comment } from '../types';
 import type { User } from '@supabase/supabase-js';
@@ -14,6 +14,20 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
     const [newComment, setNewComment] = useState('');
     const [commentImage, setCommentImage] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!commentImage) {
+            setPreviewUrl(null);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(commentImage);
+        setPreviewUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [commentImage]);
 
     const handleAddComment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,23 +82,34 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
             {currentUser && (
                 <form onSubmit={handleAddComment} className="flex flex-col gap-3">
                     <textarea
-                        className="textarea textarea-bordered w-full bg-white text-black"
+                        className="textarea textarea-bordered w-full bg-white text-black border-blue-500"
                         placeholder="Add a comment..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                     />
-                    <img
-                        src={URL.createObjectURL(commentImage)}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                    />
+                    {previewUrl && (
+                        <div className="relative w-32 h-32 mb-2 rounded-lg overflow-hidden border border-gray-300">
+                            <img
+                                src={previewUrl}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                            />
+                            <button
+                                type="button"
+                                className="absolute top-1 right-1 btn btn-circle btn-xs btn-error"
+                                onClick={() => setCommentImage(null)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    )}
                     <div className="flex justify-between items-center">
-                        <input
+                        {!previewUrl && <input
                             type="file"
                             accept="image/*"
                             className="file-input file-input-xs bg-white"
                             onChange={(e) => setCommentImage(e.target.files?.[0] || null)}
-                        />
+                        />}
                         <button
                             className="btn btn-primary btn-sm"
                             disabled={isSubmitting}
