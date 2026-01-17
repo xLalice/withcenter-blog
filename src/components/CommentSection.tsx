@@ -16,6 +16,7 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [status, setStatus] = useState<'idle' | 'uploading' | 'saving'>('idle');
 
     useEffect(() => {
         if (!commentImage) {
@@ -32,6 +33,7 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
     const handleAddComment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newComment.trim() || !currentUser) return;
+        setStatus('uploading');
 
         setIsSubmitting(true);
         let imageUrl = null;
@@ -40,6 +42,7 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
             imageUrl = await uploadImage(commentImage);
             if (!imageUrl) alert("Image not uploaded")
         }
+        setStatus('saving');
 
         const { data, error } = await supabase
             .from('comments')
@@ -58,6 +61,7 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
             setCommentImage(null);
         }
         setIsSubmitting(false);
+        setStatus('idle');
     };
 
     return (
@@ -101,6 +105,15 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
                             >
                                 ✕
                             </button>
+                        </div>
+                    )}
+                    {status !== 'idle' && (
+                        <div className="w-full animate-pulse">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>{status === 'uploading' ? 'Uploading image to cloud...' : 'Finalizing comment...'}</span>
+                                <span className="loading loading-spinner loading-xs"></span>
+                            </div>
+                            <progress className="progress progress-primary w-full"></progress>
                         </div>
                     )}
                     <div className="flex justify-between items-center">
