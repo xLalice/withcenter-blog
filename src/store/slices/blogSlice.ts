@@ -28,7 +28,7 @@ export const fetchBlogs = createAsyncThunk(
         try {
             const { data, count, error } = await supabase
                 .from('blogs')
-                .select('*, comments (id, content, image_url, created_at, profiles (email))', { count: 'exact' })
+                .select('*, comments (id, content, image_url, created_at, user_id, profiles (email))', { count: 'exact' })
                 .order('created_at', { ascending: false })
                 .range(from, to);
 

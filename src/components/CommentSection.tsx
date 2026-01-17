@@ -64,23 +64,55 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
         setStatus('idle');
     };
 
+    const handleDeleteComment = async (commentId: number) => {
+        if (!confirm("Are you sure you want to delete this comment?")) return;
+
+        setComments(comments.filter((c) => c.id !== commentId));
+
+        const { error } = await supabase
+            .from('comments')
+            .delete()
+            .eq('id', commentId);
+
+        if (error) {
+            alert("Failed to delete: " + error.message);
+        }
+    };
+
     return (
         <div className="mt-8 border-t pt-6">
             <h4 className="text-xl font-bold mb-4">Comments ({comments.length})</h4>
 
             <div className="space-y-4 mb-6">
-                {comments.map((c: Comment) => (
-                    <div key={c.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="font-bold text-sky-600 text-sm">{c.profiles?.email}</span>
-                            <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+                {comments.map((c: Comment) => {
+
+                    console.log(`Comment ID: ${c.id}`, {
+                        currentUser: currentUser?.id,
+                        commentOwner: c.user_id,
+                        match: currentUser?.id === c.user_id
+                    });
+                    return (
+                        <div key={c.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="font-bold text-sky-600 text-sm">{c.profiles?.email}</span>
+                                <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+                            </div>
+                            {currentUser?.id === c.user_id && (
+                                <button
+                                    onClick={() => handleDeleteComment(c.id)}
+                                    className="btn btn-ghost bg-red-500 btn-xs hover:bg-red-600 ml-auto"
+                                    title="Delete comment"
+                                >
+                                    Trash 🗑️
+                                </button>
+                            )}
+                            <p className="text-gray-800">{c.content}</p>
+                            {c.image_url && (
+                                <img src={c.image_url} alt="Comment" className="mt-2 rounded-md max-h-40 w-auto object-cover" />
+                            )}
                         </div>
-                        <p className="text-gray-800">{c.content}</p>
-                        {c.image_url && (
-                            <img src={c.image_url} alt="Comment" className="mt-2 rounded-md max-h-40 w-auto object-cover" />
-                        )}
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
             {currentUser && (
