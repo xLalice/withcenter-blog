@@ -11,12 +11,6 @@ function App() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        dispatch(setSession(session));
-      }
-      setIsAuthChecking(false);
-    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         dispatch(setSession(session));
