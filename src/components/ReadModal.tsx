@@ -21,11 +21,11 @@ export const ReadModal = ({ blog, onClose }: { blog: Blog | null, onClose: () =>
                 <div className="divider"></div>
                 <article className="prose max-w-none">
                     <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-800">{blog.content}</p>
-                    <img
+                    {blog.image_url && <img
                         src={blog.image_url}
                         alt="Blog Image"
                         className="w-full h-full object-cover"
-                    />
+                    />}
                 </article>
                 <CommentSection
                     blogId={blog.id}
