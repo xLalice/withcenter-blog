@@ -167,6 +167,13 @@ export const PostModal = ({
                                     alt="Preview"
                                     className="w-full h-full object-cover"
                                 />
+                                <button
+                                    type="button"
+                                    className="absolute top-1 right-1 btn btn-circle btn-xs btn-error"
+                                    onClick={() => setFormData((prev: FormData) => ({ ...prev, image_url: "" }))}
+                                >
+                                    ✕
+                                </button>
                                 {blobUrl && (
                                     <div className="absolute top-2 right-2 badge badge-info text-white">
                                         New Upload
@@ -187,9 +194,9 @@ export const PostModal = ({
                         {isSubmitting ? 'Saving...' : mode === 'create' ? 'Publish Post' : 'Save Changes'}
                     </button>
                 </form>
-            </div>
+            </div >
 
             <div className="modal-backdrop bg-black/50" onClick={onClose}></div>
-        </div>
+        </div >
     );
 };

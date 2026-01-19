@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import supabase, { uploadImage } from '../utils/supabase';
 import type { Comment } from '../types';
 import type { User } from '@supabase/supabase-js';
+import { useDispatch } from 'react-redux';
+import { addCommentToBlog, removeCommentFromBlog } from '../store/slices/blogSlice';
 
 interface CommentSection {
     blogId: number;
@@ -17,6 +19,7 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'saving'>('idle');
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (!commentImage) {
@@ -56,7 +59,10 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
             .single();
 
         if (!error && data) {
-            setComments([...comments, data]);
+            setComments([...comments, data]); 
+
+            dispatch(addCommentToBlog({ blogId, comment: data }));
+
             setNewComment('');
             setCommentImage(null);
         }
@@ -68,6 +74,8 @@ export const CommentSection = ({ blogId, initialComments, currentUser }: Comment
         if (!confirm("Are you sure you want to delete this comment?")) return;
 
         setComments(comments.filter((c) => c.id !== commentId));
+
+        dispatch(removeCommentFromBlog({ blogId, commentId })); 
 
         const { error } = await supabase
             .from('comments')

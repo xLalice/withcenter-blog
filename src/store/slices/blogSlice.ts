@@ -98,6 +98,19 @@ const blogSlice = createSlice({
         setPage: (state, action: PayloadAction<number>) => {
             state.page = action.payload;
         },
+        addCommentToBlog: (state, action: PayloadAction<{ blogId: number; comment: Comment }>) => {
+            const blog = state.blogs.find((b) => b.id === action.payload.blogId);
+            if (blog) {
+                if (!blog.comments) blog.comments = [];
+                blog.comments.push(action.payload.comment as any);
+            }
+        },
+        removeCommentFromBlog: (state, action: PayloadAction<{ blogId: number; commentId: number }>) => {
+            const blog = state.blogs.find((b) => b.id === action.payload.blogId);
+            if (blog && blog.comments) {
+                blog.comments = blog.comments.filter((c) => c.id !== action.payload.commentId);
+            }
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -132,5 +145,5 @@ const blogSlice = createSlice({
     },
 });
 
-export const { setPage } = blogSlice.actions;
+export const { setPage, addCommentToBlog, removeCommentFromBlog } = blogSlice.actions;
 export default blogSlice.reducer;
