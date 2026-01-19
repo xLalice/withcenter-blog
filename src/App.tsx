@@ -3,7 +3,7 @@ import {  RouterProvider } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import supabase from "./utils/supabase";
-import { logout, setCredentials } from "./store/slices/authSlice";
+import { logout, setSession } from "./store/slices/authSlice";
 import { router } from "./Router";
 
 function App() {
@@ -13,13 +13,13 @@ function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        dispatch(setCredentials(session.user));
+        dispatch(setSession(session));
       }
       setIsAuthChecking(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        dispatch(setCredentials(session.user));
+        dispatch(setSession(session));
       } else {
         dispatch(logout());
       }
