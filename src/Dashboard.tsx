@@ -27,6 +27,20 @@ export default function Dashboard() {
         dispatch(fetchBlogs(page));
     }, [dispatch, page]);
 
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+        }
+    }, [user, navigate]);
+
+    if (!user) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <span className="loading loading-spinner loading-lg text-sky-500"></span>
+            </div>
+        );
+    }
+
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
