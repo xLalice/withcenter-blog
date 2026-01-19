@@ -1,23 +1,10 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {  RouterProvider } from "react-router-dom";
 
-import Auth from "./Auth";
-import Dashboard from "./Dashboard";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import supabase from "./utils/supabase";
 import { logout, setCredentials } from "./store/slices/authSlice";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    children: [
-      { index: true, element: <Auth mode="login" /> },
-      { path: "login", element: <Auth mode="login" /> },
-      { path: "register", element: <Auth mode="register" /> },
-      { path: "dashboard", element: <Dashboard /> }
-    ]
-  }
-])
+import { router } from "./Router";
 
 function App() {
   const dispatch = useDispatch();
