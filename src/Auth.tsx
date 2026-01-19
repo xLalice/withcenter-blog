@@ -1,6 +1,5 @@
-import Login from "./Login";
-import Registration from "./Registration";
 import logo from "./assets/logo.png"; 
+import AuthForm from "./AuthForm";
 
 export default function Auth({ mode }: { mode: 'login' | 'register' }) {
     return (
@@ -14,10 +13,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
             </div>
 
             <div className="bg-sky-500 h-screen w-1/2 px-50 flex flex-col justify-center">
-                {mode === "login" ?
-                    <Login /> :
-                    <Registration />
-                }
+                <AuthForm mode={mode} />
             </div>
         </div>
     )
